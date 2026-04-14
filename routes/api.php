@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\CommentController;
 
 Route::get('/test', function () {
     return response()->json(['message' => 'API funcionando']);
@@ -33,7 +35,7 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-
+    ///doctors
     Route::get('/doctors', [DoctorController::class, 'index']);
     Route::get('/doctors/{id}', [DoctorController::class, 'show']);
 
@@ -45,10 +47,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:2')->group(function () {
         Route::put('/doctors/{id}', [DoctorController::class, 'update']);
     });
-});
 
-Route::middleware('auth:sanctum')->group(function () {
-
+    ////citas
     Route::get('/appointments', [AppointmentController::class, 'index']);
     Route::get('/appointments/{id}', [AppointmentController::class, 'show']);
 
@@ -57,4 +57,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // DOCTOR
     Route::middleware('role:2')->put('/appointments/{id}/status', [AppointmentController::class, 'updateStatus']);
+
+    // POSTS
+    Route::get('/posts', [PostController::class, 'index']);
+    Route::get('/posts/{id}', [PostController::class, 'show']);
+    Route::post('/posts', [PostController::class, 'store']);
+    Route::put('/posts/{id}', [PostController::class, 'update']);
+    Route::delete('/posts/{id}', [PostController::class, 'destroy']);
+
+    // COMMENTS
+    Route::post('/posts/{postId}/comments', [CommentController::class, 'store']);
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
 });
+
+
