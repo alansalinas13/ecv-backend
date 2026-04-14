@@ -103,9 +103,9 @@ class AppointmentController extends Controller
                 'message' => 'No autorizado'
             ], 403);
         }
-
+        // El doctor asignado puede marcar la cita como pendiente, confirmada, cancelada o completada.
         $validated = $request->validate([
-            'status' => ['required', 'in:pending,confirmed,cancelled']
+            'status' => ['required', 'in:pending,confirmed,cancelled,completed']
         ]);
 
         $appointment->update([

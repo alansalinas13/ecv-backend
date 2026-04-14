@@ -42,13 +42,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/doctors/{id}', [DoctorController::class, 'show']);
 
     Route::middleware('role:1')->group(function () {
+        Route::get('/doctor-users/available', [DoctorController::class, 'availableDoctorUsers']);
         Route::post('/doctors', [DoctorController::class, 'store']);
         Route::delete('/doctors/{id}', [DoctorController::class, 'destroy']);
     });
 
-    Route::middleware('role:2')->group(function () {
-        Route::put('/doctors/{id}', [DoctorController::class, 'update']);
-    });
+    Route::put('/doctors/{id}', [DoctorController::class, 'update']);
 
     ////citas
     Route::get('/appointments', [AppointmentController::class, 'index']);
