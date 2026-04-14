@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\EvaluationController;
+use App\Http\Controllers\Api\HospitalController;
 
 Route::get('/test', function () {
     return response()->json(['message' => 'API funcionando']);
@@ -73,6 +74,16 @@ Route::middleware('auth:sanctum')->group(function () {
     //evaluaciones
     Route::get('/evaluations', [EvaluationController::class, 'index']);
     Route::post('/evaluations', [EvaluationController::class, 'store']);
+
+    //hospitales
+    Route::get('/hospitals', [HospitalController::class, 'index']);
+    Route::get('/hospitals/{id}', [HospitalController::class, 'show']);
+
+    Route::middleware('role:1')->group(function () {
+        Route::post('/hospitals', [HospitalController::class, 'store']);
+        Route::put('/hospitals/{id}', [HospitalController::class, 'update']);
+        Route::delete('/hospitals/{id}', [HospitalController::class, 'destroy']);
+    });
 });
 
 
