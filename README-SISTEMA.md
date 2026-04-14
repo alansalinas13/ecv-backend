@@ -312,16 +312,6 @@ database/
 ✔ Autoevaluación
 ✔ Hospitales
 
----
-
-# 🚀 Próximo paso
-
-Frontend con React:
-
-* Login
-* Dashboard
-* Consumo API
-* Mapa con hospitales
 
 ---
 
