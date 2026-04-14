@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\EvaluationController;
 
 Route::get('/test', function () {
     return response()->json(['message' => 'API funcionando']);
@@ -68,6 +69,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // COMMENTS
     Route::post('/posts/{postId}/comments', [CommentController::class, 'store']);
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+
+    //evaluaciones
+    Route::get('/evaluations', [EvaluationController::class, 'index']);
+    Route::post('/evaluations', [EvaluationController::class, 'store']);
 });
 
 
