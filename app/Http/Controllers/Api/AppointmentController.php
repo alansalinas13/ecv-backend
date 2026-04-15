@@ -6,37 +6,42 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Appointment;
 use App\Models\Doctor;
+use App\Notifications\AppointmentCreatedNotification;
 
-class AppointmentController extends Controller
-{
+class AppointmentController extends Controller {
     // Listar citas según rol
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
         $user = $request->user();
 
         // Usuario normal
         if ($user->role == 3) {
-            return Appointment::with('doctor.user')
-                              ->where('user_id', $user->id)
-                              ->get();
+            return response()->json(
+                Appointment::with(['doctor.user', 'doctor.city', 'doctor.hospital'])
+                           ->where('user_id', $user->id)
+                           ->get()
+            );
         }
 
         // Doctor
         if ($user->role == 2) {
             $doctor = $user->doctor;
 
-            return Appointment::with('user')
-                              ->where('doctor_id', $doctor->id)
-                              ->get();
+            return response()->json(
+                Appointment::with(['user', 'doctor.city', 'doctor.hospital'])
+                           ->where('doctor_id', $doctor->id)
+                           ->get()
+            );
         }
 
         // Admin
-        return Appointment::with(['user', 'doctor.user'])->get();
+        return response()->json(
+            Appointment::with(['user', 'doctor.user', 'doctor.city', 'doctor.hospital'])
+                       ->get()
+        );
     }
 
     // Crear cita (USER)
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $user = $request->user();
 
         if ($user->role != 3) {
@@ -46,9 +51,27 @@ class AppointmentController extends Controller
         }
 
         $validated = $request->validate([
-            'doctor_id' => ['required', 'exists:doctors,id'],
+            'doctor_id'        => ['required', 'exists:doctors,id'],
             'appointment_date' => ['required', 'date', 'after:now'],
         ]);
+
+        $doctor = Doctor::find($validated['doctor_id']);
+
+        if (!$doctor) {
+            return response()->json([
+                'message' => 'Doctor no encontrado'
+            ], 404);
+        }
+
+        $appointmentTime = date('H:i', strtotime($validated['appointment_date']));
+
+        if ($doctor->start_time && $doctor->end_time) {
+            if ($appointmentTime < $doctor->start_time || $appointmentTime > $doctor->end_time) {
+                return response()->json([
+                    'message' => 'La cita está fuera del horario de atención del doctor'
+                ], 400);
+            }
+        }
 
         // Validar que no haya duplicado (mismo doctor y hora)
         $exists = Appointment::where('doctor_id', $validated['doctor_id'])
@@ -62,18 +85,23 @@ class AppointmentController extends Controller
         }
 
         $appointment = Appointment::create([
-            'user_id' => $user->id,
-            'doctor_id' => $validated['doctor_id'],
+            'user_id'          => $user->id,
+            'doctor_id'        => $validated['doctor_id'],
             'appointment_date' => $validated['appointment_date'],
         ]);
+
+        $appointment->load(['user', 'doctor.user', 'doctor.city', 'doctor.hospital']);
+
+        if ($appointment->doctor?->user) {
+            $appointment->doctor->user->notify(new AppointmentCreatedNotification($appointment));
+        }
 
         return response()->json($appointment, 201);
     }
 
     // Ver cita
-    public function show(Request $request, $id)
-    {
-        $appointment = Appointment::with(['user', 'doctor.user'])->find($id);
+    public function show(Request $request, $id) {
+        $appointment = Appointment::with(['user', 'doctor.user', 'doctor.city', 'doctor.hospital'])->find($id);
 
         if (!$appointment) {
             return response()->json([
@@ -81,12 +109,11 @@ class AppointmentController extends Controller
             ], 404);
         }
 
-        return $appointment;
+        return response()->json($appointment);
     }
 
     // Doctor cambia estado
-    public function updateStatus(Request $request, $id)
-    {
+    public function updateStatus(Request $request, $id) {
         $appointment = Appointment::find($id);
 
         if (!$appointment) {
@@ -114,5 +141,4 @@ class AppointmentController extends Controller
 
         return response()->json($appointment);
     }
-
 }

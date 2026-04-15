@@ -21,6 +21,7 @@ class User extends Authenticatable {
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'role'
     ];
@@ -38,6 +39,22 @@ class User extends Authenticatable {
         return $this->hasOne(Doctor::class);
     }
 
+    public function appointments() {
+        return $this->hasMany(Appointment::class);
+    }
+
+    public function posts() {
+        return $this->hasMany(Post::class);
+    }
+
+    public function comments() {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function evaluations() {
+        return $this->hasMany(Evaluation::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -49,25 +66,4 @@ class User extends Authenticatable {
             'password'          => 'hashed',
         ];
     }
-
-    public function appointments()
-    {
-        return $this->hasMany(Appointment::class);
-    }
-
-    public function posts()
-    {
-        return $this->hasMany(Post::class);
-    }
-
-    public function comments()
-    {
-        return $this->hasMany(Comment::class);
-    }
-
-    public function evaluations()
-    {
-        return $this->hasMany(Evaluation::class);
-    }
-
 }
