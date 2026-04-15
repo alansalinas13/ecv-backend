@@ -11,17 +11,30 @@ class DoctorController extends Controller {
     // Listar doctores
     public function index() {
         return response()->json(
-            Doctor::with('user')->get()
+            Doctor::with(['user', 'city', 'hospital'])->orderBy('id', 'desc')->get()
         );
+    }
+
+    // Usuarios disponibles para crear perfil de doctor (solo admin)
+    public function availableDoctorUsers() {
+        $users = User::where('role', 2)
+                     ->whereDoesntHave('doctor')
+                     ->get(['id', 'name', 'email']);
+
+        return response()->json($users);
     }
 
     // Crear doctor (solo admin)
     public function store(Request $request) {
         $validated = $request->validate([
             'user_id'     => ['required', 'exists:users,id'],
+            'city_id'     => ['required', 'exists:cities,id'],
+            'hospital_id' => ['required', 'exists:hospitals,id'],
             'specialty'   => ['required', 'string', 'max:255'],
             'phone'       => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string'],
+            'start_time'  => ['required', 'date_format:H:i'],
+            'end_time'    => ['required', 'date_format:H:i', 'after:start_time'],
         ]);
 
         $user = User::find($validated['user_id']);
@@ -48,13 +61,13 @@ class DoctorController extends Controller {
 
         return response()->json([
             'message' => 'Doctor creado correctamente',
-            'doctor'  => $doctor->load('user')
+            'doctor'  => $doctor->load(['user', 'city', 'hospital']),
         ], 201);
     }
 
     // Ver doctor
     public function show($id) {
-        $doctor = Doctor::with('user')->find($id);
+        $doctor = Doctor::with(['user', 'city', 'hospital'])->find($id);
 
         if (!$doctor) {
             return response()->json([
@@ -67,7 +80,7 @@ class DoctorController extends Controller {
 
     // Actualizar doctor
     public function update(Request $request, $id) {
-        $doctor = Doctor::with('user')->find($id);
+        $doctor = Doctor::with(['user', 'city', 'hospital'])->find($id);
 
         if (!$doctor) {
             return response()->json([
@@ -87,16 +100,20 @@ class DoctorController extends Controller {
         }
 
         $validated = $request->validate([
+            'city_id'     => ['required', 'exists:cities,id'],
+            'hospital_id' => ['required', 'exists:hospitals,id'],
             'specialty'   => ['required', 'string', 'max:255'],
             'phone'       => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string'],
+            'start_time'  => ['required', 'date_format:H:i'],
+            'end_time'    => ['required', 'date_format:H:i', 'after:start_time'],
         ]);
 
         $doctor->update($validated);
 
         return response()->json([
             'message' => 'Doctor actualizado correctamente',
-            'doctor'  => $doctor->fresh()->load('user')
+            'doctor'  => $doctor->fresh()->load(['user', 'city', 'hospital']),
         ]);
     }
 
@@ -115,14 +132,5 @@ class DoctorController extends Controller {
         return response()->json([
             'message' => 'Doctor eliminado correctamente'
         ]);
-    }
-
-    public function availableDoctorUsers()
-    {
-        $users = User::where('role', 2)
-                     ->whereDoesntHave('doctor')
-                     ->get(['id', 'name', 'email']);
-
-        return response()->json($users);
     }
 }

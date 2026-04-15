@@ -4,20 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Hospital extends Model
+class City extends Model
 {
     protected $fillable = [
-        'city_id',
         'name',
-        'address',
-        'lat',
-        'lng',
     ];
 
-    public function city()
+    public function hospitals()
     {
-        return $this->belongsTo(City::class);
+        return $this->hasMany(Hospital::class);
     }
+
     public function doctors()
     {
         return $this->hasMany(Doctor::class);

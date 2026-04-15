@@ -320,3 +320,39 @@ database/
 La autoevaluación es orientativa y no reemplaza diagnóstico médico profesional.
 
 ---
+# Ajuste de modelo geográfico y disponibilidad
+
+Se agregó la tabla:
+
+- cities
+
+Se modificaron las tablas:
+
+- hospitals → city_id
+- doctors → city_id, hospital_id, start_time, end_time
+
+## Objetivo
+
+Permitir:
+
+- filtrar hospitales por ciudad
+- filtrar doctores por ciudad
+- asociar doctores a hospitales
+- definir horario básico de atención por doctor
+
+# Módulo Ciudades
+
+## Tabla
+- cities
+
+## Endpoints
+- GET /api/cities
+- POST /api/cities (admin)
+- PUT /api/cities/{id} (admin)
+- DELETE /api/cities/{id} (admin)
+
+## Uso
+La tabla cities se utiliza para:
+- asociar hospitales a ciudades
+- asociar doctores a ciudades
+- poblar filtros y selects
