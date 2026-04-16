@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\EvaluationController;
 use App\Http\Controllers\Api\HospitalController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AiController;
 
 Route::get('/test', function () {
     return response()->json(['message' => 'API funcionando']);
@@ -94,6 +95,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/cities/{id}', [CityController::class, 'update']);
         Route::delete('/cities/{id}', [CityController::class, 'destroy']);
     });
+
+    //ai
+    Route::post('/ai/test', [AiController::class, 'test']);
+    Route::post('/ai/assistant', [AiController::class, 'assistant']);
 });
 
 Route::middleware(['auth:sanctum', 'role:1'])->group(function () {

@@ -5,11 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Evaluation;
+use App\Services\AiService;
 
-class EvaluationController extends Controller
-{
-    public function index(Request $request)
-    {
+class EvaluationController extends Controller {
+    public function index(Request $request) {
         $evaluations = Evaluation::where('user_id', $request->user()->id)
                                  ->latest()
                                  ->get();
@@ -17,16 +16,15 @@ class EvaluationController extends Controller
         return response()->json($evaluations);
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request, AiService $aiService) {
         $validated = $request->validate([
-            'answers' => ['required', 'array'],
-            'answers.age' => ['required', 'integer', 'min:1'],
-            'answers.smoker' => ['required', 'boolean'],
+            'answers'              => ['required', 'array'],
+            'answers.age'          => ['required', 'integer', 'min:1'],
+            'answers.smoker'       => ['required', 'boolean'],
             'answers.hypertension' => ['required', 'boolean'],
-            'answers.diabetes' => ['required', 'boolean'],
-            'answers.obesity' => ['required', 'boolean'],
-            'answers.exercise' => ['required', 'boolean'],
+            'answers.diabetes'     => ['required', 'boolean'],
+            'answers.obesity'      => ['required', 'boolean'],
+            'answers.exercise'     => ['required', 'boolean'],
         ]);
 
         $answers = $validated['answers'];
@@ -35,7 +33,8 @@ class EvaluationController extends Controller
 
         if ($answers['age'] >= 60) {
             $score += 2;
-        } elseif ($answers['age'] >= 45) {
+        }
+        elseif ($answers['age'] >= 45) {
             $score += 1;
         }
 
@@ -65,16 +64,30 @@ class EvaluationController extends Controller
             default => 'low',
         };
 
+        $aiSummary = null;
+
+        try {
+            $aiSummary = $aiService->generateEvaluationSummary(
+                $validated['answers'],
+                $score,
+                $riskLevel
+            );
+        }
+        catch (\Throwable $e) {
+            $aiSummary = 'No se pudo generar el resumen inteligente en este momento.';
+        }
         $evaluation = Evaluation::create([
-            'user_id' => $request->user()->id,
-            'answers' => $answers,
+            'user_id'    => $request->user()->id,
+            'answers'    => $answers,
             'risk_level' => $riskLevel,
+            'ai_summary' => $aiSummary,
         ]);
 
         return response()->json([
-            'message' => 'Evaluación registrada correctamente',
+            'message'    => 'Evaluación registrada correctamente',
             'evaluation' => $evaluation,
-            'score' => $score,
+            'score'      => $score,
+            'ai_summary' => $aiSummary,
         ], 201);
     }
 }

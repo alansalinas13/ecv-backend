@@ -10,6 +10,7 @@ class Evaluation extends Model
         'user_id',
         'answers',
         'risk_level',
+        'ai_summary',
     ];
 
     protected $casts = [
